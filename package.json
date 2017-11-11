@@ -1,0 +1,30 @@
+{
+  "name": "gulp-template-extend",
+  "version": "0.0.1",
+  "description": "Easiest way to extend html template using gulp",
+  "main": "index.js",
+  "repository": "https://github.com/yusrilhs/gulp-template-extend.git",
+  "author": "Yusril Herlian Syah",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1",
+    "vinyl": "^2.1.0"
+  },
+  "dependencies": {
+    "gulp-util": "^3.0.8",
+    "through2": "^2.0.3",
+    "xmldom": "^0.1.27"
+  },
+  "keywords": [
+    "html",
+    "template",
+    "extend",
+    "gulp",
+    "plugin"
+  ],
+  "scripts": {
+    "test": "mocha"
+  }
+}
