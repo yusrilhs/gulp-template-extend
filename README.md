@@ -56,9 +56,9 @@ gulp.task('build-page', () => {
 </head>
 <body>
 <header>Welcome to my page</header>
-<section-content>
-    <h1>This is my file content</h1>
-</section-content>
+
+<h1>This is my file content</h1>
+
 </body>
 </html>
 ```
