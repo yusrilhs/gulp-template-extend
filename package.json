@@ -1,7 +1,7 @@
 {
   "name": "gulp-template-extend",
   "version": "0.0.1",
-  "description": "Easiest way to extend html template using gulp",
+  "description": "Easiest way to extend or include html file using gulp.",
   "main": "index.js",
   "repository": "https://github.com/yusrilhs/gulp-template-extend.git",
   "author": "Yusril Herlian Syah",
