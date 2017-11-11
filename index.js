@@ -61,7 +61,6 @@ module.exports = () => {
 
         let parsedContent = parser.parseFromString(file.contents.toString(), 'text/html');
 
-
         let basedir, templateDoc, extendElements;
 
         extendElements = parsedContent.getElementsByTagName('extend-to')
