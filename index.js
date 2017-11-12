@@ -105,6 +105,8 @@ module.exports = () => {
     function translateExtendElement(parsedContent, filePath) {
         let basedir = path.dirname(filePath),
             extendElements = parsedContent.getElementsByTagName('extend-to');
+        
+        translatedTemplates = [];
 
         // Support for multiple section
         for(let i=0,length=extendElements.length;i<length;i++) {
