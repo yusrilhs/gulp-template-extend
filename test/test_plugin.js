@@ -39,7 +39,7 @@ describe('Test gulp-template-extend plugin', () => {
   });
 
   it('Should extend file with template', (done) => {
-    let extendFile = createVinylFile('./test/fixtures/test_extend.html');
+    let extendFile = createVinylFile('./test/fixtures/pages/test_extend.html');
 
     this.plugin.write(extendFile);
 
@@ -47,7 +47,7 @@ describe('Test gulp-template-extend plugin', () => {
       file.contents.toString().should.not.include.all.string('section-content', 'extend-to', 'include-file');
       file.contents.toString().should.equal([
 '<!DOCTYPE html>',
-'<html lang="en" xmlns="http://www.w3.org/1999/xhtml">',
+'<html lang="en">',
 '<head>',
 '    <title></title>',
 '</head>',
@@ -68,7 +68,7 @@ describe('Test gulp-template-extend plugin', () => {
   });
 
   it('should include file', (done) => {
-    let includeFile = createVinylFile('./test/fixtures/test_include.html');
+    let includeFile = createVinylFile('./test/fixtures/pages/test_include.html');
 
     this.plugin.write(includeFile);
 
@@ -77,7 +77,7 @@ describe('Test gulp-template-extend plugin', () => {
 
       file.contents.toString().should.equal([
 '<!DOCTYPE html>',
-'<html xmlns="http://www.w3.org/1999/xhtml">',
+'<html lang="en" xmlns="http://www.w3.org/1999/xhtml">',
 '<head>',
 '    <title></title>',
 '</head>',
@@ -92,7 +92,7 @@ describe('Test gulp-template-extend plugin', () => {
   });
 
   it('should extend and include file', (done) => {
-    let testFile = createVinylFile('./test/fixtures/test_extend_and_include.html');
+    let testFile = createVinylFile('./test/fixtures/pages/test_extend_and_include.html');
 
     this.plugin.write(testFile);
 
@@ -100,11 +100,12 @@ describe('Test gulp-template-extend plugin', () => {
       file.contents.toString().should.not.include.all.string('section-content', 'extend-to', 'include-file');
       file.contents.toString().should.equal([
 '<!DOCTYPE html>',
-'<html lang="en" xmlns="http://www.w3.org/1999/xhtml">',
+'<html lang="en">',
 '<head>',
 '    <title></title>',
 '</head>',
 '<body>',
+'<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe, laboriosam?</p>',
 '',
 '<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe, laboriosam?</p>',
 '',
