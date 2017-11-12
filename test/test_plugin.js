@@ -24,6 +24,20 @@ describe('Test gulp-template-extend plugin', () => {
     this.plugin = templateExtend();
   });
 
+  it('Should be no error if blank file', (done) => { 
+    let blankFile = new File({
+        path: 'any/file.html',
+        contents: new Buffer('')
+    });
+
+    this.plugin.write(blankFile);
+
+    this.plugin.once('data', (file) => {
+        file.contents.should.to.equal(blankFile.contents);
+        done();
+    });
+  });
+
   it('Should extend file with template', (done) => {
     let extendFile = createVinylFile('./test/fixtures/test_extend.html');
 
@@ -60,6 +74,7 @@ describe('Test gulp-template-extend plugin', () => {
 
     this.plugin.once('data', (file) => {
       file.contents.toString().should.not.include.all.string('section-content', 'extend-to', 'include-file');
+
       file.contents.toString().should.equal([
 '<!DOCTYPE html>',
 '<html xmlns="http://www.w3.org/1999/xhtml">',

@@ -59,7 +59,16 @@ module.exports = () => {
             this.emit('error', new PluginError(PLUGIN_NAME, 'Streams not supported!'));
         }
 
+        // Empty file
+        if (!file.contents.toString().length) {
+            return cb(null, file);
+        }
+
         let parsedContent = parser.parseFromString(file.contents.toString(), 'text/html');
+        
+        if (!parsedContent) {
+            return cb(null, file)
+        }
 
         let basedir, templateDoc, extendElements;
 
