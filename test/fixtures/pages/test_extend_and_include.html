@@ -1,9 +1,13 @@
-<extend-to src="../layouts/test_template_2.html" section="content"></extend-to>
+<extend-to src="../layouts/test_template_2.htmlx" section="content" />
 
-<section-content>
+<template-section name="content">
 <include-file src="../layouts/test_include_1.html" />
 
 <include-file src="../layouts/test_include_2.html" />
 
 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quis, aspernatur!</p>
-</section-content>
+</template-section>
+
+<template-section name="title">
+    Lorem ipsum dolor.
+</template-section>
