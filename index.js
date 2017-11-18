@@ -9,7 +9,8 @@ const gutil = require('gulp-util')
 
 const CHEERIO_OPTIONS = {
     xmlMode: true,
-    decodeEntities: false
+    decodeEntities: false,
+    recognizeSelfClosing: false
 };
 
 module.exports = () => {
@@ -43,11 +44,11 @@ module.exports = () => {
 
         extendElement = $('extend-to').first();
 
-        if (!extendElement.length) return;
+        if (!extendElement.length) return $;
 
         templateFilePath = path.resolve(basepath, extendElement.attr('src') || '');
 
-        if (!isFile(templateFilePath)) return;
+        if (!isFile(templateFilePath)) return $;
 
         templateFileContent = readFile(templateFilePath);
         $$ = cheerio.load(templateFileContent, CHEERIO_OPTIONS);
@@ -79,7 +80,7 @@ module.exports = () => {
 
             includeFilePath = path.resolve(basepath, $el.attr('src'));
             
-            if (!isFile(includeFilePath)) return;
+            if (!isFile(includeFilePath)) return $;
             
             includeFileContent = readFile(includeFilePath);
             includeDom = $(includeFileContent);
@@ -114,9 +115,9 @@ module.exports = () => {
 
        contentDom = translateIncludeFile(contentDom, basepath);
        contentDom = translateExtendFile(contentDom, basepath);
-
+       
        if (contentDom) {
-        file.contents = new Buffer(contentDom.html());
+        file.contents = new Buffer(contentDom.html().trim());
        }
 
         return cb(null, file);
