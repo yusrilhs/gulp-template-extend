@@ -59,7 +59,7 @@ describe('Test gulp-template-extend plugin', () => {
     });
   });
 
-  it('Should return only template file when template-section is not match', (done) => {
+  it('Should return only template file when template-section is not exists', (done) => {
     let fileBuffer = new Buffer([
 '<extend-to src="test_template.html">',
 '<template-section name="notExists">',
@@ -165,6 +165,28 @@ describe('Test gulp-template-extend plugin', () => {
 '</html>'
 ].join('\n'));
       done();
+    });
+  });
+
+  it('should become a good documentation :)', (done) => {
+    let pageFile = createVinylFile('./test/fixtures/docs/my_page.html');
+
+    this.plugin.write(pageFile);
+
+    this.plugin.once('data', (f) => {
+        f.contents.toString().should.equal([
+'<!DOCTYPE html>',
+'<html lang="en">',
+'<head>',
+'    <title>This is page title.</title>',
+'</head>',
+'<body>',
+'<header>Welcome to my page</header>',
+'<h1>This is my file content.</h1>',
+'</body>',
+'</html>'
+].join('\n'));
+        done();
     });
   });
 
