@@ -3,162 +3,95 @@ const gutil = require('gulp-util')
     , fs = require('fs')
     , path = require('path')
     , through = require('through2')
-    , dom = require('xmldom')
     , PluginError = gutil.PluginError
-    , PLUGIN_NAME = 'gulp-template-extend'
-    , parser = new dom.DOMParser();
+    , cheerio = require('cheerio')
+    , PLUGIN_NAME = 'gulp-template-extend';
 
-const cleanPattern = /(<(section-|include-file|extend-to)([^>]+)>|(<\/(section-[\w\-]+|include-file|extend-to)>))/ig;
+const CHEERIO_OPTIONS = {
+    xmlMode: true,
+    decodeEntities: false
+};
 
 module.exports = () => {
-
-    let translatedTemplates = {};
-
     function readFile(fpath) {
-        return fs.readFileSync(fpath).toString();
+        return fs.readFileSync(fpath).toString().trim();
     }
 
     function isFile(fpath) {
+        let notFoundErrorMessage = gutil.colors.red(`${path.relative(process.cwd(), fpath)} is not a file`);
+
         try {
-            let stat = fs.lstatSync(fpath);
-            return stat.isFile();
+            let stat = fs.lstatSync(fpath),
+                isFile = stat.isFile();
+
+            if (!isFile) this.emit('error', new PluginError(PLUGIN_NAME, notFoundErrorMessage));
+
+            return isFile;
         } catch(e) {
+            gutil.log(notFoundErrorMessage);
             return false;
         }
     }
 
-    function doExtend(parsedContent, extendElement, fpath) {
-        let sectionAttr = extendElement.getAttribute('section'),
-            sectionElement = parsedContent.getElementsByTagName(`section-${sectionAttr}`),
-            basedir = path.dirname(path.resolve(fpath)),
-            templateFilePath, templateDoc, sectionTemplate;
-        
-        templateFilePath = path.join(basedir, extendElement.getAttribute('src'));
-        
-        if (!isFile(templateFilePath)) {
-            gutil.log(gutil.colors.red(`Template file ${path.basename(templateFilePath)} not found`), 'on', gutil.colors.bold(path.basename(fpath)));
-            return false;
-        }
-
-        templateDoc = parser.parseFromString(readFile(templateFilePath), 'text/html');
-        sectionTemplate = templateDoc.getElementsByTagName(`section-${sectionAttr}`);
-        
-        if (sectionElement.length && sectionTemplate.length) {
-            sectionTemplate[0].appendChild(sectionElement[0]);
-        }
-
-        return {
-            doc: templateDoc,
-            path: templateFilePath
-        };
+    function basedir(fpath) {
+        return path.dirname(fpath);
     }
 
-    function translateIncludeFile(basedir, parsedContent) {
-        let includeFileElements = parsedContent.getElementsByTagName('include-file');
+    function translateExtendFile($, basepath) {
+        let $elE, $elT, extendElement, sectionTag,
+            templateFilePath, templateFileContent, $$;
 
-        for(let i=0,length=includeFileElements.length;i<length;i++) {
-            let includeFileElement = includeFileElements[i],
-                includeFile, includeFilePath;
+        extendElement = $('extend-to').first();
 
-            if (!includeFileElement.hasAttribute('src')) continue;
-            includeFilePath = path.resolve(basedir, includeFileElement.getAttribute('src'));
-            
-            if (isFile(includeFilePath)) {
-                let fileToInclude = readFile(includeFilePath),
-                    fileIncludeDoc = parser.parseFromString(fileToInclude);
+        if (!extendElement.length) return;
 
-                // Make sure this is a html source
-                if (fileIncludeDoc) {
-                    includeFileElement.appendChild(fileIncludeDoc);
-                }
-            }
-        }
+        templateFilePath = path.resolve(basepath, extendElement.attr('src') || '');
 
-        return parsedContent;
-    }
+        if (!isFile(templateFilePath)) return;
 
-    function appendSectionToTemplate(sectionElement, templateFilePath, sectionSelector) {
-        let templateDoc;
+        templateFileContent = readFile(templateFilePath);
+        $$ = cheerio.load(templateFileContent, CHEERIO_OPTIONS);
 
-        if (!translatedTemplates[templateFilePath]) {
-            templateDoc = parser.parseFromString(readFile(templateFilePath));
-            translatedTemplates[templateFilePath] = templateDoc;
-        } else {
-            return true;
-        }
+        $('template-section').each((i, el) => {
+            $elE = $(el);
+            sectionTag = $elE.attr('name');
 
-        // Make sure templateDoc is parsed as html
-        if (templateDoc) {
-            templateDoc = translateIncludeFile(path.dirname(templateFilePath), templateDoc);
-            
-            let sectionTarget = templateDoc.getElementsByTagName(sectionSelector);
-            
-            if (sectionTarget.length) {
-                sectionTarget[0].appendChild(sectionElement);
-                return templateDoc;
-            }
-        }
+            if (!sectionTag) return;
 
-        return false;
-    }
+            sectionTag = 'section-' + sectionTag;
+            $elT = $$(sectionTag).first();
 
-    function translateExtendElement(parsedContent, filePath) {
-        let basedir = path.dirname(filePath),
-            extendElements = parsedContent.getElementsByTagName('extend-to');
+            if (!$elT.length) return;
+
+            $elT.replaceWith($elE.html().trim());
+        });
         
-        translatedTemplates = [];
+        $$ = translateIncludeFile($$, basedir(templateFilePath));
 
-        // Support for multiple section
-        for(let i=0,length=extendElements.length;i<length;i++) {
-            let extendElement = extendElements[i], sectionTarget, 
-                templateFilePath, sectionElement;
+        return $$;
+    }
+
+    function translateIncludeFile($, basepath) {
+        let $el, includeFilePath, includeFileContent, includeDom; 
+        
+        $('include-file').each((i, el) => {
+            $el = $(el);
+
+            includeFilePath = path.resolve(basepath, $el.attr('src'));
             
-            // Check for src and section attribute
-            if (extendElement.hasAttribute('src') && extendElement.hasAttribute('section')) {
-                sectionTarget = 'section-' + extendElement.getAttribute('section');
-                templateFilePath = path.resolve(basedir, extendElement.getAttribute('src'));
-                sectionElement = parsedContent.getElementsByTagName(sectionTarget);
+            if (!isFile(includeFilePath)) return;
+            
+            includeFileContent = readFile(includeFilePath);
+            includeDom = $(includeFileContent);
+            $el.replaceWith(includeDom);
+        });
 
-                if (sectionElement.length && isFile(templateFilePath)) {
-                    let doc = appendSectionToTemplate(sectionElement[0], templateFilePath, sectionTarget);
-                    if (doc !== false) {
-                        extendElement.childNodes = new Array();
-                        extendElement.appendChild(doc);
-                    } 
-
-                    // Already translated template
-                    if (doc === true) {
-                        sectionTarget = parsedContent.getElementsByTagName(sectionTarget);
-                        for (let j=0,len=sectionTarget.length;j<len;j++) {
-                            if (sectionTarget[j] != sectionElement[0]) {
-                                let appendableElement, childElement;
-                                
-                                if (sectionTarget[j].childNodes.length > 0)  {
-                                    appendableElement = sectionElement[0];
-                                    childElement = sectionTarget[j];
-                                } else {
-                                    appendableElement = sectionTarget[j];
-                                    childElement = sectionElement[0];
-                                }
-
-                                appendableElement.appendChild(childElement);
-                                extendElement.childNodes = new Array();
-
-                                // I don't know why this give me a little
-                                // bit confusing with return `??`
-                                parsedContent.removeChild(extendElement);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return parsedContent;
+        return $;
     }
 
     return through.obj((file, enc, cb) => {
+        let content;
+
         if (file.isNull()) {
             // nothing to do
             return cb(null, file);
@@ -169,27 +102,23 @@ module.exports = () => {
             this.emit('error', new PluginError(PLUGIN_NAME, 'Streams not supported!'));
         }
 
+        content = file.contents.toString();
+
         // Empty file
-        if (!file.contents.toString().length) {
+        if (!content.length) {
             return cb(null, file);
         }
 
-        let parsedContent = parser.parseFromString(file.contents.toString(), 'text/html');
-        
-        // Non html
-        if (!parsedContent) {
-            return cb(null, file)
-        }
+        let contentDom = cheerio.load(content, CHEERIO_OPTIONS),
+            basepath = basedir(file.path);
 
-        let templateDoc, xmlSerializeString;
+       contentDom = translateIncludeFile(contentDom, basepath);
+       contentDom = translateExtendFile(contentDom, basepath);
 
-        templateDoc = translateIncludeFile(path.dirname(file.path), parsedContent);
-        templateDoc = translateExtendElement(templateDoc, file.path);
+       if (contentDom) {
+        file.contents = new Buffer(contentDom.html());
+       }
 
-        xmlSerializeString = new dom.XMLSerializer().serializeToString(templateDoc);
-        
-        file.contents = new Buffer(xmlSerializeString.trim().replace(cleanPattern, ''));
-        
         return cb(null, file);
     });
 };
