@@ -11,17 +11,20 @@ Easiest way to extend or include html file using gulp.
 ## Example
 ##### my_page.html
 ```html
-<extend-to section="content" src="my_template.html" />
-<section-content>
-    <h1>This is my file content</h1>
-</section-content>
+<extend-to src="my_template.html" />
+<template-section name="title">
+    This is page title.
+</template-section>
+<template-section name="content">
+    <h1>This is my file content.</h1>
+</template-section>
 ```
 ##### my_template.html
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title></title>
+    <title><section-title /></title>
 </head>
 <body>
 <include-file src="header.html" />
@@ -52,13 +55,11 @@ gulp.task('build-page', () => {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title></title>
+    <title>This is page title.</title>
 </head>
 <body>
 <header>Welcome to my page</header>
-
-<h1>This is my file content</h1>
-
+<h1>This is my file content.</h1>
 </body>
 </html>
 ```
