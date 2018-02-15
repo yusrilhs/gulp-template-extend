@@ -1,9 +1,10 @@
 'use strict';
-const gutil = require('gulp-util')
+const colors = require('ansi-colors')
+    , log = require('fancy-log')
+    , PluginError = require('plugin-error')
     , fs = require('fs')
     , path = require('path')
     , through = require('through2')
-    , PluginError = gutil.PluginError
     , cheerio = require('cheerio')
     , PLUGIN_NAME = 'gulp-template-extend';
 
@@ -19,7 +20,7 @@ module.exports = () => {
     }
 
     function isFile(fpath) {
-        let notFoundErrorMessage = gutil.colors.red(`${path.relative(process.cwd(), fpath)} is not a file`);
+        let notFoundErrorMessage = colors.red(`${path.relative(process.cwd(), fpath)} is not a file`);
 
         try {
             let stat = fs.lstatSync(fpath),
@@ -29,7 +30,7 @@ module.exports = () => {
 
             return isFile;
         } catch(e) {
-            gutil.log(notFoundErrorMessage);
+            log(notFoundErrorMessage);
             return false;
         }
     }
@@ -66,22 +67,22 @@ module.exports = () => {
 
             $elT.replaceWith($elE.html().trim());
         });
-        
+
         $$ = translateIncludeFile($$, basedir(templateFilePath));
 
         return $$;
     }
 
     function translateIncludeFile($, basepath) {
-        let $el, includeFilePath, includeFileContent, includeDom; 
-        
+        let $el, includeFilePath, includeFileContent, includeDom;
+
         $('include-file').each((i, el) => {
             $el = $(el);
 
             includeFilePath = path.resolve(basepath, $el.attr('src'));
-            
+
             if (!isFile(includeFilePath)) return $;
-            
+
             includeFileContent = readFile(includeFilePath);
             includeDom = $(includeFileContent);
             $el.replaceWith(includeDom);
@@ -115,7 +116,7 @@ module.exports = () => {
 
        contentDom = translateIncludeFile(contentDom, basepath);
        contentDom = translateExtendFile(contentDom, basepath);
-       
+
        if (contentDom) {
         file.contents = new Buffer(contentDom.html().trim());
        }
