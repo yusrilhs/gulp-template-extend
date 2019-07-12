@@ -91,9 +91,10 @@ module.exports = () => {
 
       includeFileContent = readFile(includeFilePath);
 
-      includeFileType = includeFilePath.substring(includeFilePath.lastIndexOf('.')+1, includeFilePath.length) || includeFilePath;
+      includeFileType = includeFilePath.substring(includeFilePath.lastIndexOf('.'), includeFilePath.length) || includeFilePath;
 
-      if ( includeFileType.toLowerCase == "html" ) includeDom = $(includeFileContent);
+      if ( includeFileType.toLowerCase() == ".html" ) includeDom = $(includeFileContent);
+      else if ( includeFileType.toLowerCase() == ".js" ) includeDom = "//<![CDATA[\n"+includeFileContent+"\n//]]>";
       else includeDom = includeFileContent;
 
       $el.replaceWith(includeDom);
