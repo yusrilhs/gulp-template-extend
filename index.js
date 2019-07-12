@@ -80,7 +80,7 @@ module.exports = () => {
   }
 
   function translateIncludeFile($, basepath) {
-    let $el, includeFilePath, includeFileContent, includeDom;
+    let $el, includeFilePath, includeFileContent, includeFileType, includeDom;
 
     $('include-file').each((i, el) => {
       $el = $(el);
@@ -90,7 +90,12 @@ module.exports = () => {
       if (!isFile(includeFilePath)) return $;
 
       includeFileContent = readFile(includeFilePath);
-      includeDom = $(includeFileContent);
+
+      includeFileType = includeFilePath.substring(includeFilePath.lastIndexOf('.')+1, includeFilePath.length) || includeFilePath;
+
+      if ( includeFileType.toLowerCase == "html" ) includeDom = $(includeFileContent);
+      else includeDom = includeFileContent;
+
       $el.replaceWith(includeDom);
     });
 
